@@ -15,6 +15,8 @@ Designed For:
 4. **Customizable Alerts and Reminders**: Stay on top of your budget with customizable alerts for upcoming bills and reminders for regular expenses.
 
 ## Initial Design
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/1.png)
+
 
 ## Use this README File 
 
