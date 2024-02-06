@@ -6,13 +6,15 @@ Designed For:
 - Frequent travelers needing to manage expenses in multiple currencies.
 - Anyone who wants to simplify their financial life with smart, automated tools.
 
-## 🔧Main Function and Storyboard
-1. **Automatic Receipt Scanning**: Say goodbye to manual entry. Just snap a picture of your receipts, and UExpense will automatically categorize your expenses. Our state-of-the-art OCR (Optical Character Recognition) technology extracts and organizes information from your receipts, making expense tracking effortless.
+## 🔧Main Function
+1. **Automatic Receipt Scanning**: Just snap a picture of your receipts, and UExpense will automatically categorize your expenses. Our state-of-the-art OCR (Optical Character Recognition) technology extracts and organizes information from your receipts, making expense tracking effortless.
 
 2. **Manual Expense Logging**: Prefer to enter expenses manually? UExpense offers an intuitive interface to quickly add and categorize expenses, making it easy to keep up-to-date with your spending.
 
 3. **Multi-Currency Support**: Traveling or dealing with multiple currencies? No problem. UExpense supports various currencies and provides real-time conversion rates, allowing you to record and view your expenses in your preferred currency.
 4. **Customizable Alerts and Reminders**: Stay on top of your budget with customizable alerts for upcoming bills and reminders for regular expenses.
+
+## Initial Design
 
 ## Use this README File 
 
