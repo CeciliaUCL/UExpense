@@ -1,0 +1,37 @@
+name: mqtt_tool
+description: "A new Flutter project."
+publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+
+version: 1.0.5+1
+
+environment:
+  sdk: '>=3.4.0-24.0.dev <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  cupertino_icons: ^1.0.6
+  mqtt_client: ^10.2.0
+  fluttertoast: ^8.0.9
+  path: ^1.8.1
+  time: ^2.1.0
+  intl: ^0.19.0
+  #progress_hud: ^1.1.0
+  string_validator: ^1.0.2
+  css_text: ^3.0.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+
+  fonts:
+    - family: Helvetica Neue
+      fonts:
+        - asset: assets/fonts/HelveticaNeue.ttc

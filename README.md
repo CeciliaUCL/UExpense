@@ -16,6 +16,9 @@ Designed For:
 
 ## Initial Design
 ![image](https://github.com/CeciliaUCL/UExpense/blob/main/1.png)
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/2.png)
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/3.png)
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/4.png)
 
 
 ## Use this README File 
