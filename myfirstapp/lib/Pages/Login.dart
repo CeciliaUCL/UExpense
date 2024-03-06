@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:myfirstapp/Pages/Dashboard.dart';
 import 'package:myfirstapp/Pages/SignupPage.dart';
 
 class LoginPage extends StatelessWidget {
@@ -38,14 +39,22 @@ class LoginPage extends StatelessWidget {
                 ),
               ),
               SizedBox(height: 20),
+             // 
               ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color.fromARGB(255, 51, 126, 111),
-                  foregroundColor: Colors.white, 
-                ),
-                onPressed: () {},
-                child: Text('Login'),
-              ),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Color.fromARGB(255, 51, 126, 111),
+                foregroundColor: Colors.white,
+               ),
+               onPressed: () {
+               // Login successfully
+               Navigator.pushReplacement(
+               context,
+               MaterialPageRoute(builder: (context) => Dashboard()),
+                );
+              },
+  child: Text('Login'),
+),
+
               TextButton(
                 onPressed: () {
                   Navigator.push(
