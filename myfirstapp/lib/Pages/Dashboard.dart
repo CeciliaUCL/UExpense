@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:myfirstapp/Pages/WelcomePage.dart';
+import 'package:myfirstapp/Pages/AddCostPage.dart';
 
 class Dashboard extends StatefulWidget {
   @override
@@ -19,7 +20,7 @@ class _DashboardState extends State<Dashboard> {
   Widget build(BuildContext context) {
     List<Widget> _pages = [
       // Add the other pages here
-      Text('Home Page'), // Placeholder for home page
+      _homePage(), //This is the profile page which will have admin and logout options
       Text('Detail Page'), // Placeholder for detail page
       Text('Assistant Page'), // Placeholder for assistant page
       _profilePage(), // This is the profile page which will have admin and logout options
@@ -31,6 +32,7 @@ class _DashboardState extends State<Dashboard> {
         centerTitle: true,
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 51, 126, 111),
+        foregroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -40,6 +42,7 @@ class _DashboardState extends State<Dashboard> {
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           // Add code to open the camera here
+          Navigator.of(context).push(MaterialPageRoute(builder: (context) => AddCostPage()));
         },
         child: Icon(Icons.add, size: 36),
         backgroundColor:  Color.fromARGB(255, 51, 126, 111),
@@ -74,6 +77,69 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+ Widget _homePage() {
+    return Column(
+      children: [
+        _accountBalanceSection(),
+        _dateFilterSection(),
+        _recentTransactionSection(),
+        // Add more sections as needed
+      ],
+    );
+  }
+
+  // Account balance section
+  Widget _accountBalanceSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          _balanceCard('Income', 5000, Icons.arrow_downward, Colors.green),
+          _balanceCard('Expenses', 1200, Icons.arrow_upward, Colors.red),
+        ],
+      ),
+    );
+  }
+
+  // Date filter section
+  Widget _dateFilterSection() {
+    // Implementation depends on how you want to handle date filtering
+    return Container(
+      // Style and content for date filtering
+    );
+  }
+
+  // Recent transactions section
+  Widget _recentTransactionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Text('Recent Transaction', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        // List of transactions or ListView.builder for dynamic content
+      ],
+    );
+  }
+
+  // Helper method to create balance cards
+  Widget _balanceCard(String title, int amount, IconData icon, Color color) {
+    return Card(
+      elevation: 4,
+      child: Padding(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Icon(icon, color: color),
+            Text(title),
+            Text('\$$amount'),
+          ],
+        ),
+      ),
+    );
+  }
   Widget _profilePage() {
   return Column(
     mainAxisSize: MainAxisSize.min,
