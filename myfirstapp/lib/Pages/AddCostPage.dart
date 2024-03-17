@@ -18,6 +18,10 @@ class _AddCostPageState extends State<AddCostPage> {
   bool _showCustomKeypad = false;
   
 
+  bool _isFormReadyForSubmission() {
+    // Check if the amount is not empty and a date and time have been picked
+    return _amountController.text.isNotEmpty && _selectedDate != null && _selectedTime != null;
+  }
   // Function to handle date selection
   void _pickDate() async {
     final DateTime? pickedDate = await showDatePicker(
@@ -84,7 +88,25 @@ class _AddCostPageState extends State<AddCostPage> {
       _amountController.text = "Error";
     }
   }
-
+  // Update the Confirm button to use the new method
+  Widget _confirmButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        foregroundColor: Colors.white,
+        backgroundColor: _isFormReadyForSubmission() ? Color.fromARGB(255, 51, 126, 111) : Colors.grey,
+      ),
+      onPressed: _isFormReadyForSubmission()
+          ? () {
+              if (_formKey.currentState?.validate() ?? false) {
+                _formKey.currentState?.save();
+                // TODO: Insert the logic to handle form submission here
+                Navigator.pop(context);
+              }
+            }
+          : null, // This will disable the button when the form isn't ready
+      child: Text('Confirm'),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -159,19 +181,8 @@ class _AddCostPageState extends State<AddCostPage> {
                 trailing: Icon(Icons.calendar_today),
                 onTap: _pickDate,  // Trigger date picker
               ),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white, backgroundColor:
-                    Color.fromARGB(255, 51, 126, 111),  // Text color
-                ),
-                child: Text('Confirm'),
-                onPressed: () {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    _formKey.currentState?.save();
-                    Navigator.pop(context);  // Go back to previous screen
-                  }
-                },
-              ),
+              _confirmButton(),
+
               if (_showCustomKeypad) _buildCustomKeypad(),
             ],
           ),
