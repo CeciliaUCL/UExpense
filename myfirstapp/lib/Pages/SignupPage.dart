@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
+class SignupPage extends StatelessWidget {   
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
 
-class SignupPage extends StatelessWidget {
+  Future<UserCredential> registerWithEmailPassword(String email, String password) async {
+    FirebaseAuth auth = FirebaseAuth.instance;
+    UserCredential userCredential = await auth.createUserWithEmailAndPassword(
+      email: email,
+      password: password,
+    );
+    return userCredential;
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,6 +32,7 @@ class SignupPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
                   hintText: 'Email',
                   prefixIcon: Icon(Icons.email, color:   Color.fromARGB(255, 51, 126, 111)),
@@ -29,6 +41,7 @@ class SignupPage extends StatelessWidget {
               ),
               SizedBox(height: 10),
               TextField(
+                controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: 'Password',
@@ -51,7 +64,9 @@ class SignupPage extends StatelessWidget {
                 backgroundColor:   Color.fromARGB(255, 51, 126, 111),
                 foregroundColor: Colors.white,
                 ),
-                onPressed: () {},
+                onPressed: () {
+                  registerWithEmailPassword(emailController.text,passwordController.text);
+                },
                 child: Text('Sign up'),
                 
               ),
@@ -66,5 +81,11 @@ class SignupPage extends StatelessWidget {
         ),
       ),
     );
+  }
+  void _submitData(BuildContext context) {
+    // Navigator.pushReplacement(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => Dashboard()),
+    // );
   }
 }
