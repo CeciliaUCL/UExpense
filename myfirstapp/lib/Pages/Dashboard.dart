@@ -65,15 +65,16 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _buildBottomNavigationBarItem({required IconData icon, required String label, required int index}) {
-    return IconButton(
-      icon: Column(
+    return GestureDetector(
+    behavior: HitTestBehavior.opaque,
+      child: Column(
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(icon, color: _selectedIndex == index ? Color.fromARGB(255, 51, 126, 111) : Colors.grey),
-          Text(label, style: TextStyle(fontSize: 12, color: _selectedIndex == index ? Colors.green : Colors.grey))
+          Text(label, style: TextStyle(fontSize: 18, color: _selectedIndex == index ? Colors.green : Colors.grey))
         ],
       ),
-      onPressed: () => _onItemTapped(index),
+    onTap: () => _onItemTapped(index),
     );
   }
 

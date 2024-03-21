@@ -89,22 +89,27 @@ class LoginPage extends StatelessWidget {
 
   _login(BuildContext context) {
     _submitData().then((value) {
+    if(value){
       Navigator.of(context).pushReplacement(
         CupertinoPageRoute(builder: (context) => Dashboard()),
       );
+    }else{
+      // TODO:登录失败
+    }
     }).catchError((e) {
       LoggerUtils.e(e);
     });
   }
 
-  Future<void> _submitData() async {
+  Future<bool> _submitData() async {
     try {
       var res = await FirebaseAuth.instance.signInWithEmailAndPassword(
-        //调用firebase的signInWithEmailAndPassword函数
-        email: emailController.text.trim(), //获取用户输入的email
-        password: passwordController.text.trim(), //获取用户输入的password
+        //firebase signInWithEmailAndPassword Function
+        email: emailController.text.trim(), //get email
+        password: passwordController.text.trim(), //get password
       );
       LoggerUtils.i("_signIn result:$res");
+      return true;
     } on FirebaseAuthException catch (e) {
       if (e.code == 'weak-password') {
         LoggerUtils.e('The password provided is too weak.');
@@ -114,5 +119,6 @@ class LoginPage extends StatelessWidget {
     } catch (e) {
       LoggerUtils.e(e);
     }
+    return false;
   }
 }
