@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:math_expressions/math_expressions.dart';
-
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 class AddCostPage extends StatefulWidget {
   @override
   _AddCostPageState createState() => _AddCostPageState();
@@ -16,7 +17,42 @@ class _AddCostPageState extends State<AddCostPage> {
   TimeOfDay? _selectedTime;
   TextEditingController _amountController = TextEditingController();
   bool _showCustomKeypad = false;
-  
+  File? _image;
+
+  Future<void> _takePicture() async {
+  final picker = ImagePicker();
+  try {
+    final pickedImage = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 600,
+    );
+
+    if (pickedImage != null) {
+      setState(() {
+        _image = File(pickedImage.path);
+      });
+    } else {
+      print('No image selected.');
+    }
+  } catch (e) {
+    print('Failed to pick image: $e');
+  }
+}
+
+
+  Widget _imagePreview() {
+    return Container(
+      height: 200,
+      width: double.infinity,
+      margin: EdgeInsets.only(top: 10),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey),
+      ),
+      child: _image == null
+          ? Center(child: Text("No image selected", textAlign: TextAlign.center))
+          : Image.file(_image!, fit: BoxFit.cover),
+    );
+  }
 
   bool _isFormReadyForSubmission() {
     // Check if the amount is not empty and a date and time have been picked
@@ -114,6 +150,7 @@ class _AddCostPageState extends State<AddCostPage> {
       appBar: AppBar(
         title: Text('Add Cost'),
         backgroundColor:  Color.fromARGB(255, 51, 126, 111),
+        foregroundColor: Colors.white,
       ),
       body: Form(
         key: _formKey,
@@ -180,6 +217,26 @@ class _AddCostPageState extends State<AddCostPage> {
                       : 'Date: ${_selectedDate!.toIso8601String().split('T')[0]} Time: ${_selectedTime?.format(context) ?? ''}'),
                 trailing: Icon(Icons.calendar_today),
                 onTap: _pickDate,  // Trigger date picker
+              ),
+               Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.camera_alt),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: _takePicture,
+                  ),
+                ],
+              ),
+              _imagePreview(),
+              ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    _formKey.currentState!.save();
+                    Navigator.pop(context);
+                  }
+                },
+                child: Text('Submit'),
               ),
               _confirmButton(),
 

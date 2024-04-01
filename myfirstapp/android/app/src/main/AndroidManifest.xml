@@ -43,4 +43,15 @@
             <data android:mimeType="text/plain"/>
         </intent>
     </queries>
+    <!-- Permissions options for the image picker plugin -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <!-- Add this line if you are targeting Android 11 (API level 30) or above -->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE" />
+        </intent>
+    </queries>
 </manifest>

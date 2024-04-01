@@ -87,19 +87,40 @@ class LoginPage extends StatelessWidget {
     );
   }
 
-  _login(BuildContext context) {
-    _submitData().then((value) {
-    if(value){
+_login(BuildContext context) {
+  _submitData().then((value) {
+    if (value) {
       Navigator.of(context).pushReplacement(
         CupertinoPageRoute(builder: (context) => Dashboard()),
       );
-    }else{
-      // TODO:登录失败
+    } else {
+      _showLoginError(context, 'Login failed. Please check your email/password and try again.');
     }
-    }).catchError((e) {
-      LoggerUtils.e(e);
-    });
-  }
+  }).catchError((e) {
+    _showLoginError(context, 'An error occurred: ${e.toString()}');
+    LoggerUtils.e(e);
+  });
+}
+
+void _showLoginError(BuildContext context, String message) {
+  showDialog(
+    context: context,
+    builder: (BuildContext context) {
+      return AlertDialog(
+        title: Text('Login Error'),
+        content: Text(message),
+        actions: <Widget>[
+          TextButton(
+            child: Text('OK'),
+            onPressed: () {
+              Navigator.of(context).pop(); // Close the dialog
+            },
+          ),
+        ],
+      );
+    },
+  );
+}
 
   Future<bool> _submitData() async {
     try {

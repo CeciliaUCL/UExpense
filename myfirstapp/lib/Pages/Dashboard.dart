@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myfirstapp/Pages/WelcomePage.dart';
 import 'package:myfirstapp/Pages/AddCostPage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:myfirstapp/Pages/ChangePasswordPage.dart';
+
 
 class Dashboard extends StatefulWidget {
   @override
@@ -71,7 +74,7 @@ class _DashboardState extends State<Dashboard> {
         mainAxisSize: MainAxisSize.min,
         children: <Widget>[
           Icon(icon, color: _selectedIndex == index ? Color.fromARGB(255, 51, 126, 111) : Colors.grey),
-          Text(label, style: TextStyle(fontSize: 18, color: _selectedIndex == index ? Colors.green : Colors.grey))
+          Text(label, style: TextStyle(fontSize: 10, color: _selectedIndex == index ? Colors.green : Colors.grey))
         ],
       ),
     onTap: () => _onItemTapped(index),
@@ -141,30 +144,43 @@ class _DashboardState extends State<Dashboard> {
       ),
     );
   }
-  Widget _profilePage() {
-  return Column(
-    mainAxisSize: MainAxisSize.min,
-    children: <Widget>[
-      ListTile(
-        leading: Icon(Icons.admin_panel_settings),
-        title: Text('Admin'),
-        onTap: () {
-          // Handle admin tap
-        },
-      ),
-      ListTile(
-        leading: Icon(Icons.logout),
-        title: Text('Logout'),
-        onTap: () {
-          // Handle logout tap
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(builder: (context) => WelcomePage()),
-            (Route<dynamic> route) => false,
-          );
-        },
-      ),
-    ],
-  );
-}
+   Widget _profilePage() {
+    User? user = FirebaseAuth.instance.currentUser;
+    String displayName = user?.email ?? "No name available"; // Default text if user name is not available
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: <Widget>[
+        ListTile(
+          leading: Icon(Icons.account_circle),
+          title: Text(displayName),
+          subtitle: Text('Tap to edit profile'),
+          onTap: () {
+            // Handle profile edit tap
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.vpn_key),
+          title: Text('Change Password'),
+          onTap: () {
+            // Navigate to change password page
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChangePasswordPage()));
+          },
+        ),
+        ListTile(
+          leading: Icon(Icons.logout),
+          title: Text('Logout'),
+          onTap: () {
+            // Handle logout tap
+            FirebaseAuth.instance.signOut();
+            Navigator.of(context).pushAndRemoveUntil(
+              MaterialPageRoute(builder: (context) => WelcomePage()),
+              (Route<dynamic> route) => false,
+            );
+          },
+        ),
+      ],
+    );
+  }
 
 }
