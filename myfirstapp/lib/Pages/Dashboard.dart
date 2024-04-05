@@ -3,6 +3,10 @@ import 'package:myfirstapp/Pages/WelcomePage.dart';
 import 'package:myfirstapp/Pages/AddCostPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:myfirstapp/Pages/ChangePasswordPage.dart';
+import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'package:fl_chart/fl_chart.dart';
 
 
 class Dashboard extends StatefulWidget {
@@ -12,7 +16,7 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
-
+  List<dynamic> _hourlyWeather = [];//store weather
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -25,7 +29,7 @@ class _DashboardState extends State<Dashboard> {
       // Add the other pages here
       _homePage(), //This is the profile page which will have admin and logout options
       Text('Detail Page'), // Placeholder for detail page
-      Text('Assistant Page'), // Placeholder for assistant page
+      _assistantPage(), // Placeholder for assistant page
       _profilePage(), // This is the profile page which will have admin and logout options
     ];
 
@@ -182,5 +186,163 @@ class _DashboardState extends State<Dashboard> {
       ],
     );
   }
+  String _weatherInfo = 'Press the button to get weather';
+  Future<void> getWeather() async {
+    try {
+      Position position = await determinePosition();
+      var currentWeatherData = await fetchWeather(position.latitude, position.longitude);
+      var hourlyWeatherData = await fetchHourlyWeather(position.latitude, position.longitude);
+      setState(() {
+        _weatherInfo ='Current Temperature: ${_convertToCelsius(currentWeatherData['main']['temp']).toStringAsFixed(1)} °C\n'
+                   'Weather: ${currentWeatherData['weather'][0]['description']}';
+        _hourlyWeather = hourlyWeatherData['list'].take(8).toList();//for 24h
+      });
+    } catch (e) {
+      setState(() {
+        _weatherInfo = 'Failed to get weather: $e';
+        _hourlyWeather = [];
+      });
+    }
+  }
+  //convert to celsius
+  double _convertToCelsius(double tempInKelvin) {
+    return tempInKelvin - 273.15;
+  }
+  
+
+  Future<Position> determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return Future.error('Location services are disabled.');
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return Future.error('Location permissions are denied');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
+    }
+
+    return await Geolocator.getCurrentPosition();
+  }
+
+  Future<Map<String, dynamic>> fetchWeather(double latitude, double longitude) async {
+    final apiKey = '69516efa70e4fabd1f6034411c9d4990';  // APIkey
+    final url = 'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey';
+
+    final response = await http.get(Uri.parse(url));
+
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load weather data');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchHourlyWeather(double latitude, double longitude) async {
+    final apiKey = '69516efa70e4fabd1f6034411c9d4990';  // API key
+    final url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=$apiKey';
+    
+    final response = await http.get(Uri.parse(url));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load weather forecast data');
+    }
+  }
+
+Widget _hourlyWeatherListView() {
+  return Container(
+    height: 180.0, 
+    child: ListView.builder(
+      shrinkWrap: true,
+      physics: ClampingScrollPhysics(), // To provide a more compact scrolling experience
+      itemCount: _hourlyWeather.length,
+      itemBuilder: (context, index) {
+        var hourlyData = _hourlyWeather[index];
+        var time = DateTime.fromMillisecondsSinceEpoch(hourlyData['dt'] * 1000);
+        return ListTile(
+          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0), //ListTile inside margin
+          leading: Icon(Icons.wb_sunny, size: 20), 
+          title: Text(
+            '${time.hour}:00',
+            style: TextStyle(fontSize: 14), 
+          ),
+          subtitle: Text(
+            hourlyData['weather'][0]['description'],
+            style: TextStyle(fontSize: 12), 
+          ),
+          trailing: Text(
+            '${_convertToCelsius(hourlyData['main']['temp']).toStringAsFixed(1)} °C',
+            style: TextStyle(fontSize: 14), 
+          ),
+        );
+      },
+    ),
+  );
+}
+
+
+  // 
+Widget _assistantPage() {
+  return SingleChildScrollView(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Card(
+          margin: EdgeInsets.all(12.0), //outside margin
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          elevation: 4.0, // shadow
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0), // Reduce the inside margin
+            child: Column(
+              mainAxisSize: MainAxisSize.min, // Make sure that the Column takes up just enough space
+              children: [
+                Text(
+                  'Weather Information',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18, 
+                  ),
+                ),
+                SizedBox(height: 10), 
+                Text(
+                  _weatherInfo,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16, 
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        ElevatedButton(
+          onPressed: getWeather,
+          child: Text('Get Weather'),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 12.0), // Reduce spacing
+          child: SizedBox(
+            height: 200.0,
+            child: _hourlyWeatherListView(),
+          ),
+        ),
+      ],
+    ),
+  );
+}
+
+
 
 }
