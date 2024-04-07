@@ -17,6 +17,56 @@ class Dashboard extends StatefulWidget {
 class _DashboardState extends State<Dashboard> {
   int _selectedIndex = 0;
   List<dynamic> _hourlyWeather = [];//store weather
+  List<String> messages = [];  // store chat
+  TextEditingController messageController = TextEditingController();
+  //send messaege and return reply
+  Future<void> sendMessage() async {
+    final String userInput = messageController.text;
+    if (userInput.isNotEmpty) {
+      setState(() {
+        messages.insert(0, "You: $userInput");
+      });
+      final String response = await chatWithOpenAI(userInput);
+      setState(() {
+        messages.insert(0, "OpenAI: $response");
+      });
+      messageController.clear();
+    }
+  }
+  
+  Future<String> chatWithOpenAI(String message) async {
+  final apiKey = 'sk-proj-OuAIfnjQ1uDN8hkJdOe9T3BlbkFJV9Y7C7ID13Zm59wM2QQD'; // 请替换为您的API密钥
+  // 更新URL以使用`chat/completions`终端
+  final url = Uri.parse('https://api.openai.com/v1/chat/completions');
+
+  try {
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $apiKey'
+      },
+      body: jsonEncode({
+        'messages': [{'role': 'user', 'content': message}],
+        'model': 'gpt-3.5-turbo', // 确保使用正确的模型名
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      var jsonResponse = jsonDecode(response.body);
+      return jsonResponse['choices'][0]['message']['content'].trim();
+    } else {
+      throw Exception('Failed to get response: ${response.body}');
+    }
+  } catch (e) {
+    return 'Error contacting OpenAI: $e';
+  }
+}
+
+
+
+
+
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -85,16 +135,16 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
- Widget _homePage() {
-    return Column(
-      children: [
-        _accountBalanceSection(),
-        _dateFilterSection(),
-        _recentTransactionSection(),
-        // Add more sections as needed
-      ],
-    );
-  }
+  Widget _homePage() {
+      return Column(
+        children: [
+          _accountBalanceSection(),
+          _dateFilterSection(),
+          _recentTransactionSection(),
+          // Add more sections as needed
+        ],
+      );
+    }
 
   // Account balance section
   Widget _accountBalanceSection() {
@@ -290,59 +340,100 @@ Widget _hourlyWeatherListView() {
   );
 }
 
-
-  // 
 Widget _assistantPage() {
-  return SingleChildScrollView(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Card(
-          margin: EdgeInsets.all(12.0), //outside margin
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15.0),
-          ),
-          elevation: 4.0, // shadow
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0), // Reduce the inside margin
-            child: Column(
-              mainAxisSize: MainAxisSize.min, // Make sure that the Column takes up just enough space
-              children: [
-                Text(
-                  'Weather Information',
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18, 
-                  ),
-                ),
-                SizedBox(height: 10), 
-                Text(
-                  _weatherInfo,
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16, 
-                  ),
-                ),
-              ],
-            ),
+  return Column(
+    children: [
+      Expanded(
+        // The SingleChildScrollView should be wrapped in an Expanded widget
+        // to take up all the space left by the bottom chat input bar.
+        child: SingleChildScrollView(
+          child: Column(
+            children: [
+              // Your widgets like _weatherCard() go here
+            ],
           ),
         ),
-        ElevatedButton(
-          onPressed: getWeather,
-          child: Text('Get Weather'),
+      ),
+      _chatInputBar(), // The chat input bar at the bottom
+    ],
+  );
+}
+
+Widget _chatInputBar() {
+  // A widget for the chat input bar at the bottom of the screen
+  return Padding(
+    padding: EdgeInsets.only(
+      left: 16.0,
+      right: 16.0,
+      bottom: MediaQuery.of(context).viewInsets.bottom, // Respect the soft keyboard's height
+    ),
+    child: TextField(
+      controller: messageController,
+      decoration: InputDecoration(
+        labelText: 'Ask a question',
+        suffixIcon: IconButton(
+          onPressed: () {
+            sendMessage();
+          },
+          icon: Icon(Icons.send),
         ),
-        Padding(
-          padding: EdgeInsets.only(top: 12.0), // Reduce spacing
-          child: SizedBox(
-            height: 200.0,
-            child: _hourlyWeatherListView(),
-          ),
-        ),
-      ],
+      ),
     ),
   );
 }
 
+
+  Widget _weatherCard() {
+    // 这是天气卡片组件
+    return Card(
+      margin: EdgeInsets.all(12.0),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
+      elevation: 4.0,
+      child: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Weather Information',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+              ),
+            ),
+            SizedBox(height: 10),
+            Text(
+              _weatherInfo,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 16,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _chatHistory() {
+    // 这是聊天历史列表组件
+    return Container(
+      height: 300,
+      child: ListView.builder(
+        itemCount: messages.length,
+        reverse: true,
+        itemBuilder: (context, index) {
+          return ListTile(
+            title: Text(messages[index]),
+          );
+        },
+      ),
+    );
+  }
+
+ 
 
 
 }
