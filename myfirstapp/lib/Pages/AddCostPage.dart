@@ -229,15 +229,7 @@ class _AddCostPageState extends State<AddCostPage> {
                 ],
               ),
               _imagePreview(),
-              ElevatedButton(
-                onPressed: () {
-                  if (_formKey.currentState!.validate()) {
-                    _formKey.currentState!.save();
-                    Navigator.pop(context);
-                  }
-                },
-                child: Text('Submit'),
-              ),
+          
               _confirmButton(),
 
               if (_showCustomKeypad) _buildCustomKeypad(),

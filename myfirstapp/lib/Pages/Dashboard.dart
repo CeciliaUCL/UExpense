@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:myfirstapp/Pages/WelcomePage.dart';
 import 'package:myfirstapp/Pages/AddCostPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -6,7 +7,7 @@ import 'package:myfirstapp/Pages/ChangePasswordPage.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:fl_chart/fl_chart.dart';
+
 
 
 class Dashboard extends StatefulWidget {
@@ -15,10 +16,13 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
   int _selectedIndex = 0;
   List<dynamic> _hourlyWeather = [];//store weather
   List<String> messages = [];  // store chat
   TextEditingController messageController = TextEditingController();
+
+
   //send messaege and return reply
   Future<void> sendMessage() async {
     final String userInput = messageController.text;
@@ -33,13 +37,23 @@ class _DashboardState extends State<Dashboard> {
       messageController.clear();
     }
   }
-  
-  Future<String> chatWithOpenAI(String message) async {
-  final apiKey = 'sk-proj-OuAIfnjQ1uDN8hkJdOe9T3BlbkFJV9Y7C7ID13Zm59wM2QQD'; // 请替换为您的API密钥
-  // 更新URL以使用`chat/completions`终端
-  final url = Uri.parse('https://api.openai.com/v1/chat/completions');
 
+ Future<String> fetchApiKey() async {
   try {
+    final response = await http.get(Uri.parse('https://weicheng.app/somesecrettttt.txt'));
+    if (response.statusCode == 200) {
+      return response.body.trim();  // 返回密钥字符串
+    } else {
+      throw Exception('Failed to load API key');
+    }
+  } catch (e) {
+    throw Exception('Failed to load API key: $e');
+  }
+}
+  Future<String> chatWithOpenAI(String message) async {
+  try {
+    final apiKey = await fetchApiKey();  // 从服务器获取 API 密钥
+    final url = Uri.parse('https://api.openai.com/v1/chat/completions');
     final response = await http.post(
       url,
       headers: {
@@ -48,7 +62,7 @@ class _DashboardState extends State<Dashboard> {
       },
       body: jsonEncode({
         'messages': [{'role': 'user', 'content': message}],
-        'model': 'gpt-3.5-turbo', // 确保使用正确的模型名
+        'model': 'gpt-3.5-turbo',
       }),
     );
 
@@ -200,7 +214,7 @@ class _DashboardState extends State<Dashboard> {
   }
    Widget _profilePage() {
     User? user = FirebaseAuth.instance.currentUser;
-    String displayName = user?.email ?? "No name available"; // Default text if user name is not available
+    String displayName = user?.email ?? "No email available"; // Default text if user name is not available
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -208,10 +222,6 @@ class _DashboardState extends State<Dashboard> {
         ListTile(
           leading: Icon(Icons.account_circle),
           title: Text(displayName),
-          subtitle: Text('Tap to edit profile'),
-          onTap: () {
-            // Handle profile edit tap
-          },
         ),
         ListTile(
           leading: Icon(Icons.vpn_key),
@@ -242,9 +252,12 @@ class _DashboardState extends State<Dashboard> {
       Position position = await determinePosition();
       var currentWeatherData = await fetchWeather(position.latitude, position.longitude);
       var hourlyWeatherData = await fetchHourlyWeather(position.latitude, position.longitude);
+      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
+      String place = placemarks.isNotEmpty ? '${placemarks.first.locality}, ${placemarks.first.country}' : 'Unknown location';
       setState(() {
         _weatherInfo ='Current Temperature: ${_convertToCelsius(currentWeatherData['main']['temp']).toStringAsFixed(1)} °C\n'
                    'Weather: ${currentWeatherData['weather'][0]['description']}';
+                   'Location: $place';
         _hourlyWeather = hourlyWeatherData['list'].take(8).toList();//for 24h
       });
     } catch (e) {
@@ -254,6 +267,7 @@ class _DashboardState extends State<Dashboard> {
       });
     }
   }
+  
   //convert to celsius
   double _convertToCelsius(double tempInKelvin) {
     return tempInKelvin - 273.15;
@@ -340,100 +354,105 @@ Widget _hourlyWeatherListView() {
   );
 }
 
+
 Widget _assistantPage() {
-  return Column(
-    children: [
-      Expanded(
-        // The SingleChildScrollView should be wrapped in an Expanded widget
-        // to take up all the space left by the bottom chat input bar.
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              // Your widgets like _weatherCard() go here
-            ],
+  return SingleChildScrollView(
+    child: Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: <Widget>[
+        Card(
+          margin: EdgeInsets.all(12.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          elevation: 4.0,
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Weather Information',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Text(
+                  _weatherInfo,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-      ),
-      _chatInputBar(), // The chat input bar at the bottom
-    ],
+        ElevatedButton(
+          onPressed: getWeather,
+          child: Text('Get Weather'),
+        ),
+        Padding(
+          padding: EdgeInsets.only(top: 12.0),
+          child: SizedBox(
+            height: 200.0,
+            child: _hourlyWeatherListView(),
+          ),
+        ),
+        Card(
+          margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 12.0),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(15.0),
+          ),
+          elevation: 4.0,
+          child: Padding(
+            padding: EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: messageController,
+                  decoration: InputDecoration(
+                    labelText: "Ask a question",
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: sendMessage,
+                    ),
+                  ),
+                  onSubmitted: (value) => sendMessage(),
+                ),
+                SizedBox(height: 20),
+                Text(
+                  'Chat with OpenAI:',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                SizedBox(height: 10),
+                Container(
+                  height: 300,
+                  child: ListView.builder(
+                    itemCount: messages.length,
+                    reverse: true,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(messages[index]),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    ),
   );
 }
 
-Widget _chatInputBar() {
-  // A widget for the chat input bar at the bottom of the screen
-  return Padding(
-    padding: EdgeInsets.only(
-      left: 16.0,
-      right: 16.0,
-      bottom: MediaQuery.of(context).viewInsets.bottom, // Respect the soft keyboard's height
-    ),
-    child: TextField(
-      controller: messageController,
-      decoration: InputDecoration(
-        labelText: 'Ask a question',
-        suffixIcon: IconButton(
-          onPressed: () {
-            sendMessage();
-          },
-          icon: Icon(Icons.send),
-        ),
-      ),
-    ),
-  );
-}
-
-
-  Widget _weatherCard() {
-    // 这是天气卡片组件
-    return Card(
-      margin: EdgeInsets.all(12.0),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(15.0),
-      ),
-      elevation: 4.0,
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 20.0),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Weather Information',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
-            ),
-            SizedBox(height: 10),
-            Text(
-              _weatherInfo,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 16,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _chatHistory() {
-    // 这是聊天历史列表组件
-    return Container(
-      height: 300,
-      child: ListView.builder(
-        itemCount: messages.length,
-        reverse: true,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(messages[index]),
-          );
-        },
-      ),
-    );
-  }
-
- 
 
 
 }
