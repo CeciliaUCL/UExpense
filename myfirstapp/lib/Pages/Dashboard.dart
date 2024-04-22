@@ -14,6 +14,7 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
+
   int _selectedIndex = 0;
 
   double expenseTotal = 0;
@@ -346,10 +347,6 @@ class _DashboardState extends State<Dashboard> {
         ListTile(
           leading: Icon(Icons.account_circle),
           title: Text(displayName),
-          subtitle: Text('Tap to edit profile'),
-          onTap: () {
-            // Handle profile edit tap
-          },
         ),
         ListTile(
           leading: Icon(Icons.vpn_key),

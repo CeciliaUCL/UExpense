@@ -5,6 +5,7 @@ class AccountRecord {
   String category;
   DateTime date;
   String description;
+  String  uid;
 
   AccountRecord({
     required this.id,
@@ -13,6 +14,7 @@ class AccountRecord {
     required this.category,
     required this.date,
     required this.description,
+    required this.uid,
   });
 
   Map<String, dynamic> toJson() => {
@@ -31,5 +33,7 @@ class AccountRecord {
     category: json['category'],
     date: DateTime.parse(json['date']),
     description: json['description'],
+    uid:json['uid'],
+
   );
 }
