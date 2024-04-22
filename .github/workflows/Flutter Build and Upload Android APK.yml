@@ -56,30 +56,36 @@ jobs:
           channel: 'main'
 
       - name: Get Flutter dependencies      # Get the Libraries and Dependencies
-        run: flutter pub get
+        run: |
+          cd myfirstapp
+          flutter pub get
 
       - name: Build APK Release             # Build a release
-        run: flutter build apk --release
+        run: |
+          cd myfirstapp
+          flutter build apk --release
 
       - name: Build an AppBundle            # App Bundles are useful for Google Play Store
-        run: flutter build appbundle --release
+        run: |
+          cd myfirstapp
+          flutter build appbundle --release
 
       - name: Save APK to Artifacts
         uses: actions/upload-artifact@v3
         with:
           name: flutter-apk
-          path: build/app/outputs/flutter-apk/*.apk
+          path: myfirstapp/build/app/outputs/flutter-apk/*.apk
 
       - name: Save APPBUNDLE to Artifacts
         uses: actions/upload-artifact@v2
         with:
           name: flutter-appbundle
-          path: build/app/outputs/bundle/release/*.aab
+          path: myfirstapp/build/app/outputs/bundle/release/*.aab
 
       - name: Create Github Release
         uses: ncipollo/release-action@v1
         with:
-          artifacts: "build/app/outputs/bundle/release/*.aab,build/app/outputs/flutter-apk/*.apk"
+          artifacts: "myfirstapp/build/app/outputs/bundle/release/*.aab,build/app/outputs/flutter-apk/*.apk"
           tag: "v${{ steps.get_flutter_app_version.outputs.TAG_VERSION }}"
         
 
