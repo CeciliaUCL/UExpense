@@ -5,12 +5,13 @@ import 'package:myfirstapp/Pages/Login.dart';
 import 'package:myfirstapp/Pages/SignupPage.dart';
 import 'package:myfirstapp/Pages/WelcomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
-
+import 'package:myfirstapp/tool/DBExTool.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   await appCheck();
+  await DBExTool().init();
   runApp(MyApp());
 }
 
@@ -24,7 +25,6 @@ Future<void> appCheck() async {
     appleProvider: AppleProvider.appAttest,
   );
 }
-
 
 class MyApp extends StatelessWidget {
   @override

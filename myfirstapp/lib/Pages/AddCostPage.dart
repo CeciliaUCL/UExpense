@@ -1,44 +1,56 @@
-import 'package:flutter/material.dart';
-import 'package:math_expressions/math_expressions.dart';
 import 'dart:io';
+
+import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:math_expressions/math_expressions.dart';
+import 'package:myfirstapp/entity/RecordDetails.dart';
+import 'package:myfirstapp/tool/DBExTool.dart';
+
 class AddCostPage extends StatefulWidget {
+  Map? dataMap;
+
+  AddCostPage(this.dataMap);
+
   @override
-  _AddCostPageState createState() => _AddCostPageState();
+  _AddCostPageState createState() => _AddCostPageState(dataMap);
 }
 
 class _AddCostPageState extends State<AddCostPage> {
+  Map? dataMap;
+
+  _AddCostPageState(this.dataMap);
+
   final _formKey = GlobalKey<FormState>();
   String _entryType = 'expense';
   String _description = '';
   double _amount = 0.0;
-  String _expenseType = 'daily';  // Default to daily
+  String _expenseType = 'daily'; // Default to daily
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
+  TextEditingController _descriptionController = TextEditingController();
   TextEditingController _amountController = TextEditingController();
   bool _showCustomKeypad = false;
   File? _image;
 
   Future<void> _takePicture() async {
-  final picker = ImagePicker();
-  try {
-    final pickedImage = await picker.pickImage(
-      source: ImageSource.camera,
-      maxWidth: 600,
-    );
+    final picker = ImagePicker();
+    try {
+      final pickedImage = await picker.pickImage(
+        source: ImageSource.camera,
+        maxWidth: 600,
+      );
 
-    if (pickedImage != null) {
-      setState(() {
-        _image = File(pickedImage.path);
-      });
-    } else {
-      print('No image selected.');
+      if (pickedImage != null) {
+        setState(() {
+          _image = File(pickedImage.path).absolute;
+        });
+      } else {
+        print('No image selected.');
+      }
+    } catch (e) {
+      print('Failed to pick image: $e');
     }
-  } catch (e) {
-    print('Failed to pick image: $e');
   }
-}
-
 
   Widget _imagePreview() {
     return Container(
@@ -49,15 +61,19 @@ class _AddCostPageState extends State<AddCostPage> {
         border: Border.all(color: Colors.grey),
       ),
       child: _image == null
-          ? Center(child: Text("No image selected", textAlign: TextAlign.center))
+          ? Center(
+              child: Text("No image selected", textAlign: TextAlign.center))
           : Image.file(_image!, fit: BoxFit.cover),
     );
   }
 
   bool _isFormReadyForSubmission() {
     // Check if the amount is not empty and a date and time have been picked
-    return _amountController.text.isNotEmpty && _selectedDate != null && _selectedTime != null;
+    return _amountController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _selectedTime != null;
   }
+
   // Function to handle date selection
   void _pickDate() async {
     final DateTime? pickedDate = await showDatePicker(
@@ -69,7 +85,7 @@ class _AddCostPageState extends State<AddCostPage> {
     if (pickedDate != null && pickedDate != _selectedDate) {
       setState(() {
         _selectedDate = pickedDate;
-        _pickTime();  // Automatically trigger time picking after date
+        _pickTime(); // Automatically trigger time picking after date
       });
     }
   }
@@ -86,6 +102,7 @@ class _AddCostPageState extends State<AddCostPage> {
       });
     }
   }
+
   void _toggleKeypad() {
     setState(() {
       _showCustomKeypad = !_showCustomKeypad;
@@ -124,19 +141,21 @@ class _AddCostPageState extends State<AddCostPage> {
       _amountController.text = "Error";
     }
   }
+
   // Update the Confirm button to use the new method
   Widget _confirmButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
         foregroundColor: Colors.white,
-        backgroundColor: _isFormReadyForSubmission() ? Color.fromARGB(255, 51, 126, 111) : Colors.grey,
+        backgroundColor: _isFormReadyForSubmission()
+            ? Color.fromARGB(255, 51, 126, 111)
+            : Colors.grey,
       ),
       onPressed: _isFormReadyForSubmission()
-          ? () {
+          ? () async {
               if (_formKey.currentState?.validate() ?? false) {
                 _formKey.currentState?.save();
-                // TODO: Insert the logic to handle form submission here
-                Navigator.pop(context);
+                saveDB();
               }
             }
           : null, // This will disable the button when the form isn't ready
@@ -144,12 +163,68 @@ class _AddCostPageState extends State<AddCostPage> {
     );
   }
 
+  Future<void> saveDB() async {
+    int id = dataMap != null ? dataMap!['id'] : 0;
+    String entryType = _entryType.toString().trim();
+    String description = _description.toString().trim();
+    double amount = double.parse(_amountController.text);
+    String expenseType = _expenseType.toString().trim();
+    String date =
+        _selectedDate?.toString().replaceAll("00:00:00.000", "") ?? '';
+    String time = _selectedTime?.format(context).toString() ?? '';
+    String imgPath = "";
+    if (_image != null) {
+      imgPath = _image!.path.toString().trim();
+    }
+
+    RecordDetails recordDetails = RecordDetails(
+        id, entryType, description, amount, expenseType, date, time, imgPath);
+
+    bool result = false;
+    if (dataMap != null) {
+      result = await DBExTool().updateRecordDetailsById(id, recordDetails);
+    } else {
+      result = await DBExTool().insertRecordDetails(recordDetails);
+    }
+    String changeInfo = dataMap != null ? 'Changed' : 'Added';
+    String info = 'Record ${changeInfo} successfully!';
+    if (!result) {
+      info = 'Failed to ${changeInfo} record!';
+    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(info),
+      ),
+    );
+    Navigator.pop(context);
+  }
+
+  int initDataCount = 0;
+
+  void initData() {
+    if (initDataCount > 0) {
+      return;
+    }
+    if (dataMap != null) {
+      _entryType = dataMap!['entryType'];
+      _description = dataMap!['description'];
+      _amount = dataMap!['amount'];
+      _expenseType = dataMap!['expenseType'];
+      _selectedDate = DateTime.parse(dataMap!['date'].toString().trim());
+      _descriptionController.text = _description.toString();
+      _amountController.text = _amount.toString();
+      _image = File(dataMap!['imgPath'].toString().trim());
+      initDataCount += 1;
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    initData();
     return Scaffold(
       appBar: AppBar(
-        title: Text('Add Cost'),
-        backgroundColor:  Color.fromARGB(255, 51, 126, 111),
+        title: Text(dataMap == null ? 'Add Cost' : 'Change Cost'),
+        backgroundColor: Color.fromARGB(255, 51, 126, 111),
         foregroundColor: Colors.white,
       ),
       body: Form(
@@ -159,7 +234,8 @@ class _AddCostPageState extends State<AddCostPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
-              Text('Please Choose', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+              Text('Please Choose',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
               RadioListTile<String>(
                 title: const Text('Expense'),
                 value: 'expense',
@@ -189,12 +265,14 @@ class _AddCostPageState extends State<AddCostPage> {
                   _buildExpenseTypeChip(Icons.restaurant, 'Eating'),
                   _buildExpenseTypeChip(Icons.shopping_cart, 'Shopping'),
                   _buildExpenseTypeChip(Icons.movie, 'Entertainment'),
-                  _buildExpenseTypeChip(Icons.school, 'Study'),
+                  _buildExpenseTypeChip(Icons.book, 'Study'),
                 ],
               ),
               Divider(),
               TextFormField(
-                decoration: InputDecoration(labelText: 'Description', border: OutlineInputBorder()),
+                controller: _descriptionController,
+                decoration: InputDecoration(
+                    labelText: 'Description', border: OutlineInputBorder()),
                 onSaved: (value) {
                   _description = value ?? '';
                 },
@@ -211,14 +289,13 @@ class _AddCostPageState extends State<AddCostPage> {
               ),
               ListTile(
                 title: Text('Pick Date and Time'),
-                subtitle: Text(
-                  _selectedDate == null
-                      ? 'No date chosen'
-                      : 'Date: ${_selectedDate!.toIso8601String().split('T')[0]} Time: ${_selectedTime?.format(context) ?? ''}'),
+                subtitle: Text(_selectedDate == null
+                    ? 'No date chosen'
+                    : 'Date: ${_selectedDate!.toIso8601String().split('T')[0]} Time: ${_selectedTime?.format(context) ?? ''}'),
                 trailing: Icon(Icons.calendar_today),
-                onTap: _pickDate,  // Trigger date picker
+                onTap: _pickDate, // Trigger date picker
               ),
-               Row(
+              Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   IconButton(
@@ -229,17 +306,35 @@ class _AddCostPageState extends State<AddCostPage> {
                 ],
               ),
               _imagePreview(),
-              ElevatedButton(
+/*            ElevatedButton(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     _formKey.currentState!.save();
-                    Navigator.pop(context);
+                    // Navigator.pop(context);
+
+                    if (_image != null) {
+                      showDialog(
+                          context: context,
+                          builder: (BuildContext context) {
+                            return AlertDialog(
+                              title: Text("Info"),
+                              content: Text('No Selected Image.'),
+                              actions: [
+                                TextButton(
+                                  child: Text('OK'),
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                ),
+                              ],
+                            );
+                          });
+                    }
                   }
                 },
                 child: Text('Submit'),
-              ),
+              ),*/
               _confirmButton(),
-
               if (_showCustomKeypad) _buildCustomKeypad(),
             ],
           ),
@@ -247,102 +342,103 @@ class _AddCostPageState extends State<AddCostPage> {
       ),
     );
   }
- 
-Widget _buildCustomKeypad() {
-  // Style for number buttons
-  final buttonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.black, // Text color for buttons
-    backgroundColor: Colors.white, // Background color for buttons
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8), // Rounded corners for buttons
-    ),
-    padding: EdgeInsets.all(20),
-  );
 
-  // Style for operator buttons
-  final operatorButtonStyle = ElevatedButton.styleFrom(
-    foregroundColor: Colors.black, // Text color for operator buttons
-    backgroundColor: Colors.blue[200], // Background color for operator buttons
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(8), // Rounded corners for buttons
-    ),
-    padding: EdgeInsets.all(20),
-  );
+  Widget _buildCustomKeypad() {
+    // Style for number buttons
+    final buttonStyle = ElevatedButton.styleFrom(
+      foregroundColor: Colors.black, // Text color for buttons
+      backgroundColor: Colors.white, // Background color for buttons
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8), // Rounded corners for buttons
+      ),
+      padding: EdgeInsets.all(20),
+    );
 
-  // Creating the button grid
-  List<Widget> keypadButtons = [
-    // First row: 7, 8, 9, Clear (C)
-    ...List.generate(3, (i) => 7 + i).map((number) => ElevatedButton(
-      style: buttonStyle,
-      onPressed: () => _onKeypadInput('$number'),
-      child: Text('$number'),
-    )),
-    ElevatedButton(
-      style: operatorButtonStyle,
-      onPressed: _onKeypadClear, // Clear action
-      child: Text('C'),
-    ),
-    
-    // Second row: 4, 5, 6, Subtract (-)
-    ...List.generate(3, (i) => 4 + i).map((number) => ElevatedButton(
-      style: buttonStyle,
-      onPressed: () => _onKeypadInput('$number'),
-      child: Text('$number'),
-    )),
-    ElevatedButton(
-      style: operatorButtonStyle,
-      onPressed: () => _onKeypadInput('-'),
-      child: Text('-'),
-    ),
-    
-    // Third row: 1, 2, 3, Add (+)
-    ...List.generate(3, (i) => 1 + i).map((number) => ElevatedButton(
-      style: buttonStyle,
-      onPressed: () => _onKeypadInput('$number'),
-      child: Text('$number'),
-    )),
-    ElevatedButton(
-      style: operatorButtonStyle,
-      onPressed: () => _onKeypadInput('+'),
-      child: Text('+'),
-    ),
-    
-    // Fourth row: Decimal (.), 0, Backspace, Equals (=)
-    ElevatedButton(
-      style: buttonStyle,
-      onPressed: () => _onKeypadInput('.'),
-      child: Text('.'),
-    ),
-    ElevatedButton(
-      style: buttonStyle,
-      onPressed: () => _onKeypadInput('0'),
-      child: Text('0'),
-    ),
-    ElevatedButton(
-      style: operatorButtonStyle,
-      onPressed: _onKeypadDelete, // Backspace action
-      child: Icon(Icons.backspace),
-    ),
-    ElevatedButton(
-      style: operatorButtonStyle,
-      onPressed: _onKeypadCalculate, // Equals action
-      child: Text('='),
-    ),
-  ];
+    // Style for operator buttons
+    final operatorButtonStyle = ElevatedButton.styleFrom(
+      foregroundColor: Colors.black,
+      // Text color for operator buttons
+      backgroundColor: Colors.blue[200],
+      // Background color for operator buttons
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(8), // Rounded corners for buttons
+      ),
+      padding: EdgeInsets.all(20),
+    );
 
-  // Adjusting the layout to have 4 columns
-  return GridView.count(
-    crossAxisCount: 4,
-    mainAxisSpacing: 8,
-    crossAxisSpacing: 8,
-    padding: const EdgeInsets.all(8),
-    shrinkWrap: true,
-    physics: NeverScrollableScrollPhysics(), // Disable GridView scrolling
-    children: keypadButtons,
-  );
-}
+    // Creating the button grid
+    List<Widget> keypadButtons = [
+      // First row: 7, 8, 9, Clear (C)
+      ...List.generate(3, (i) => 7 + i).map((number) => ElevatedButton(
+            style: buttonStyle,
+            onPressed: () => _onKeypadInput('$number'),
+            child: Text('$number'),
+          )),
+      ElevatedButton(
+        style: operatorButtonStyle,
+        onPressed: _onKeypadClear, // Clear action
+        child: Text('C'),
+      ),
 
+      // Second row: 4, 5, 6, Subtract (-)
+      ...List.generate(3, (i) => 4 + i).map((number) => ElevatedButton(
+            style: buttonStyle,
+            onPressed: () => _onKeypadInput('$number'),
+            child: Text('$number'),
+          )),
+      ElevatedButton(
+        style: operatorButtonStyle,
+        onPressed: () => _onKeypadInput('-'),
+        child: Text('-'),
+      ),
 
+      // Third row: 1, 2, 3, Add (+)
+      ...List.generate(3, (i) => 1 + i).map((number) => ElevatedButton(
+            style: buttonStyle,
+            onPressed: () => _onKeypadInput('$number'),
+            child: Text('$number'),
+          )),
+      ElevatedButton(
+        style: operatorButtonStyle,
+        onPressed: () => _onKeypadInput('+'),
+        child: Text('+'),
+      ),
+
+      // Fourth row: Decimal (.), 0, Backspace, Equals (=)
+      ElevatedButton(
+        style: buttonStyle,
+        onPressed: () => _onKeypadInput('.'),
+        child: Text('.'),
+      ),
+      ElevatedButton(
+        style: buttonStyle,
+        onPressed: () => _onKeypadInput('0'),
+        child: Text('0'),
+      ),
+      ElevatedButton(
+        style: operatorButtonStyle,
+        onPressed: _onKeypadDelete, // Backspace action
+        child: Icon(Icons.backspace),
+      ),
+      ElevatedButton(
+        style: operatorButtonStyle,
+        onPressed: _onKeypadCalculate, // Equals action
+        child: Text('='),
+      ),
+    ];
+
+    // Adjusting the layout to have 4 columns
+    return GridView.count(
+      crossAxisCount: 4,
+      mainAxisSpacing: 8,
+      crossAxisSpacing: 8,
+      padding: const EdgeInsets.all(8),
+      shrinkWrap: true,
+      physics: NeverScrollableScrollPhysics(),
+      // Disable GridView scrolling
+      children: keypadButtons,
+    );
+  }
 
   Widget _buildExpenseTypeChip(IconData icon, String label) {
     bool isSelected = _expenseType == label.toLowerCase();
@@ -355,7 +451,7 @@ Widget _buildCustomKeypad() {
           _expenseType = label.toLowerCase();
         });
       },
-      selectedColor:  Color.fromARGB(255, 51, 126, 111),
+      selectedColor: Color.fromARGB(255, 51, 126, 111),
       avatar: Icon(icon, color: isSelected ? Colors.white : Colors.black),
     );
   }
