@@ -14,6 +14,9 @@ Designed For:
 3. **Multi-Currency Support**: Traveling or dealing with multiple currencies? No problem. UExpense supports various currencies and provides real-time conversion rates, allowing you to record and view your expenses in your preferred currency.
 4. **Customizable Alerts and Reminders**: Stay on top of your budget with customizable alerts for upcoming bills and reminders for regular expenses.
 
+## Landing Page
+https://ceciliaucl.github.io/UExpense/
+
 ## Initial Design
 ![image](https://github.com/CeciliaUCL/UExpense/blob/main/1.png)
 ![image](https://github.com/CeciliaUCL/UExpense/blob/main/2.png)
