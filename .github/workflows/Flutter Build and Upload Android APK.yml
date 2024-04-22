@@ -15,7 +15,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3     # Checkout the Repository on the Virtual Machine
-
+      
+      - name: Navigate to myfirstapp directory
+        run: cd myfirstapp
+      
       - name: Set up JDK              # Setup JAVA to build the Android APK for us
         uses: actions/setup-java@v3
         with:
