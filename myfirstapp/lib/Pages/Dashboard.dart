@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:myfirstapp/Pages/WelcomePage.dart';
-import 'package:myfirstapp/Pages/AddCostPage.dart';
-import 'package:myfirstapp/Pages/ChangePasswordPage.dart';
-import 'package:myfirstapp/tool/DBExTool.dart';
+import 'package:uexpense/Pages/WelcomePage.dart';
+import 'package:uexpense/Pages/AddCostPage.dart';
+import 'package:uexpense/Pages/ChangePasswordPage.dart';
+import 'package:uexpense/tool/DBExTool.dart';
 import 'package:http/http.dart' as http;
 
 import '../entity/RecordDetails.dart';

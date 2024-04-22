@@ -1,5 +1,5 @@
-import 'package:myfirstapp/tool/DBTool.dart';
-import 'package:myfirstapp/entity/RecordDetails.dart';
+import 'package:uexpense/tool/DBTool.dart';
+import 'package:uexpense/entity/RecordDetails.dart';
 
 class DBExTool {
   static String dbName = "db.db";

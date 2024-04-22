@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myfirstapp/Pages/Dashboard.dart';
+import 'package:uexpense/Pages/Dashboard.dart';
 
 class SignupPage extends StatefulWidget {
   @override

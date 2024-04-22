@@ -3,8 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:math_expressions/math_expressions.dart';
-import 'package:myfirstapp/entity/RecordDetails.dart';
-import 'package:myfirstapp/tool/DBExTool.dart';
+import 'package:uexpense/entity/RecordDetails.dart';
+import 'package:uexpense/tool/DBExTool.dart';
 
 class AddCostPage extends StatefulWidget {
   Map? dataMap;

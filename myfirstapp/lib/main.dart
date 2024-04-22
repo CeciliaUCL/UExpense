@@ -1,12 +1,12 @@
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:myfirstapp/Pages/Dashboard.dart';
-import 'package:myfirstapp/Pages/Login.dart';
-import 'package:myfirstapp/Pages/SignupPage.dart';
-import 'package:myfirstapp/Pages/WelcomePage.dart';
+import 'package:uexpense/Pages/Dashboard.dart';
+import 'package:uexpense/Pages/Login.dart';
+import 'package:uexpense/Pages/SignupPage.dart';
+import 'package:uexpense/Pages/WelcomePage.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:myfirstapp/tool/DBExTool.dart';
+import 'package:uexpense/tool/DBExTool.dart';
 
 void main() async {
 

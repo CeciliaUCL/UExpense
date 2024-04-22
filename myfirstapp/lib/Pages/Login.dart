@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:myfirstapp/Pages/Dashboard.dart';
-import 'package:myfirstapp/Pages/SignupPage.dart';
+import 'package:uexpense/Pages/Dashboard.dart';
+import 'package:uexpense/Pages/SignupPage.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:myfirstapp/utils/utils_logger.dart';
+import 'package:uexpense/utils/utils_logger.dart';
 
 class LoginPage extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
