@@ -24,6 +24,7 @@ Log In/Sign Up
 Add/Modify/Delete Transaction
 ![image](https://github.com/CeciliaUCL/UExpense/blob/main/6.png)
 Smart Assistant/Location Record
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/7.png)
 
 
 
