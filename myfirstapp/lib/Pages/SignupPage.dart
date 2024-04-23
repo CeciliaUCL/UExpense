@@ -93,6 +93,7 @@ class _SignupPageState extends State<SignupPage> with SingleTickerProviderStateM
                   TextField(
                     controller: emailController,
                     decoration: InputDecoration(
+                      fillColor: Colors.white,
                       hintText: 'Email',
                       prefixIcon: Icon(Icons.email, color: Color.fromARGB(255, 51, 126, 111)),
                       border: OutlineInputBorder(),
@@ -106,6 +107,7 @@ class _SignupPageState extends State<SignupPage> with SingleTickerProviderStateM
                     controller: passwordController,
                     obscureText: true,
                     decoration: InputDecoration(
+                      fillColor: Colors.white,
                       hintText: 'Password',
                       prefixIcon: Icon(Icons.lock, color: Color.fromARGB(255, 51, 126, 111)),
                       border: OutlineInputBorder(),
@@ -120,6 +122,7 @@ class _SignupPageState extends State<SignupPage> with SingleTickerProviderStateM
                     obscureText: true,
                     decoration: InputDecoration(
                       hintText: 'Confirm Password',
+                      fillColor: Colors.white,
                       prefixIcon: Icon(Icons.lock, color: Color.fromARGB(255, 51, 126, 111)),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
