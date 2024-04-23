@@ -24,13 +24,13 @@ Log In/Sign Up
 Add/Modify/Delete Transaction
 ![image](https://github.com/CeciliaUCL/UExpense/blob/main/6.png)
 Smart Assistant/Location Record
-![image](https://github.com/CeciliaUCL/UExpense/blob/main/7.png)
+
 
 
 ## Include A Section That Tells Developers How To Install The App
 
 How to install UExpense?
-(https://github.com/CeciliaUCL/UExpense/releases/tag/v1.0.4)
+(https://github.com/CeciliaUCL/UExpense/releases/tag/v1.0.5)
 
 You can directly download the apk in your Android phone.
 
