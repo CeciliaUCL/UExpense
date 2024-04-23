@@ -351,7 +351,12 @@ class _AddCostPageState extends State<AddCostPage> {
               TextFormField(
                 controller: _descriptionController,
                 decoration: InputDecoration(
-                    labelText: 'Description', border: OutlineInputBorder()),
+                    labelText: 'Description',
+                    border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                    ),
+                ),
                 onSaved: (value) {
                   _description = value ?? '';
                 },
@@ -360,7 +365,10 @@ class _AddCostPageState extends State<AddCostPage> {
                 controller: _amountController,
                 decoration: InputDecoration(
                   labelText: 'Amount',
-                  border: OutlineInputBorder(),
+                 border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                    ),
                 ),
                 readOnly: true, // Make this field read-only
                 onTap: _toggleKeypad, // Toggle the custom keypad on tap
@@ -370,6 +378,9 @@ class _AddCostPageState extends State<AddCostPage> {
                 decoration: InputDecoration(
                   labelText: 'Location',
                   border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                    ),
                 ),
               ),
               ListTile(

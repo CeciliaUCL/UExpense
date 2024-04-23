@@ -23,6 +23,9 @@ class ChangePasswordPage extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'New Password',
                 border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                ),
                 prefixIcon: Icon(Icons.lock, color: Color.fromARGB(255, 51, 126, 111)),
               ),
               obscureText: true,
@@ -33,6 +36,9 @@ class ChangePasswordPage extends StatelessWidget {
               decoration: InputDecoration(
                 labelText: 'Confirm New Password',
                 border: OutlineInputBorder(),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                ),
                 prefixIcon: Icon(Icons.lock, color: Color.fromARGB(255, 51, 126, 111)),
               ),
               obscureText: true,

@@ -34,6 +34,7 @@ class MyApp extends StatelessWidget {
       title: 'UExpense',
       theme: ThemeData(
         primarySwatch: Colors.green,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
       home: WelcomePage(), // Set welcome page
       routes: {

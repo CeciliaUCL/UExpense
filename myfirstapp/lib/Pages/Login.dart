@@ -41,9 +41,9 @@ class LoginPage extends StatelessWidget {
                   border: OutlineInputBorder(),
                   filled: true,
                   fillColor: Colors.white,
-                  focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color.fromARGB(255, 51, 126, 111), width: 2.0),
-                  ),
+                 focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                    ),
                 ),
               ),
               SizedBox(height: 10),
@@ -57,8 +57,8 @@ class LoginPage extends StatelessWidget {
                   filled: true,
                   fillColor: Colors.white,
                   focusedBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: Color.fromARGB(255, 51, 126, 111), width: 2.0),
-                  ),
+                        borderSide: BorderSide(color: Color.fromARGB(255, 76, 175, 80), width: 2),
+                    ),
                 ),
               ),
               SizedBox(height: 20),
