@@ -13,36 +13,43 @@ class DBExTool {
         " expenseType TEXT,"
         " date TEXT,"
         " time TEXT,"
-        " imgPath TEXT)",
+        " imgPath TEXT,"
+        " location TEXT,"
+        " userSig TEXT"
+        ")",
   };
 
   init() async {
     await DBTool().initDB(dbName, tableMap);
   }
 
-  Future<List<Map>> selRecordDetailsByAll() async {
-    return await DBTool().select("select * from record_details");
-  }
+  // Future<List<Map>> selRecordDetailsByAll() async {
+  //   return await DBTool().select("select * from record_details");
+  // }
 
-  Future<List<Map>> selRecordDetailsById(int id) async {
-    return await DBTool().select("select * from record_details where id=$id");
-  }
-
-  Future<List<Map>> selRecordDetailsByEntryType(String entryType) async {
+  Future<List<Map>> selRecordDetailsByAllAndUserSig(String userSig) async {
     return await DBTool()
-        .select("select * from record_details where entryType='$entryType'");
+        .select("select * from record_details where userSig='$userSig'");
+  }
+
+  Future<List<Map>> selRecordDetailsByEntryTypeAndUserSig(String entryType,String userSig) async {
+    return await DBTool()
+        .select("select * from record_details where entryType='$entryType' and userSig='$userSig'");
   }
 
   Future<bool> insertRecordDetails(RecordDetails recordDetails) async {
     return await DBTool().insert(
-        "insert into record_details(entryType,description,amount,expenseType,date,time,imgPath) values("
+        "insert into record_details(entryType,description,amount,expenseType,date,time,imgPath,location,userSig) values("
         "'${recordDetails.entryType}',"
         "'${recordDetails.description}',"
         " ${recordDetails.amount},"
         "'${recordDetails.expenseType}',"
         "'${recordDetails.date}',"
         "'${recordDetails.time}',"
-        "'${recordDetails.imgPath}')");
+        "'${recordDetails.imgPath}',"
+        "'${recordDetails.location}',"
+        "'${recordDetails.userSig}'"
+        ")");
   }
 
   Future<bool> updateRecordDetailsById(
@@ -54,7 +61,9 @@ class DBExTool {
         "expenseType='${recordDetails.expenseType}',"
         "date='${recordDetails.date}',"
         "time='${recordDetails.time}',"
-        "imgPath='${recordDetails.imgPath}' "
+        "imgPath='${recordDetails.imgPath}',"
+        "location='${recordDetails.location}',"
+        "userSig='${recordDetails.userSig}' "
         "where id=$id");
   }
 

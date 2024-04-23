@@ -52,6 +52,7 @@ class ChangePasswordPage extends StatelessWidget {
     );
   }
 
+//Check change password content
   Future<void> _changePassword(BuildContext context) async {
     if (_newPasswordController.text != _confirmPasswordController.text) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

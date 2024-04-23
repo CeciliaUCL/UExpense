@@ -7,9 +7,11 @@ class RecordDetails {
   String date;
   String time;
   String imgPath;
+  String location;
+  String userSig;
 
   RecordDetails(this.id, this.entryType, this.description, this.amount,
-      this.expenseType, this.date, this.time, this.imgPath);
+      this.expenseType, this.date, this.time, this.imgPath, this.location,this.userSig);
 
   factory RecordDetails.fromJson(Map<String, dynamic> json) {
     return RecordDetails(
@@ -21,6 +23,8 @@ class RecordDetails {
       json['date'],
       json['time'],
       json['imgPath'],
+      json['location'],
+      json['userSig'],
     );
   }
 }

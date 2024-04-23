@@ -1,10 +1,14 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:math_expressions/math_expressions.dart';
 import 'package:uexpense/entity/RecordDetails.dart';
 import 'package:uexpense/tool/DBExTool.dart';
+
+import 'GetUserInfo.dart';
 
 class AddCostPage extends StatefulWidget {
   Map? dataMap;
@@ -16,6 +20,7 @@ class AddCostPage extends StatefulWidget {
 }
 
 class _AddCostPageState extends State<AddCostPage> {
+  //dataMap
   Map? dataMap;
 
   _AddCostPageState(this.dataMap);
@@ -29,6 +34,7 @@ class _AddCostPageState extends State<AddCostPage> {
   TimeOfDay? _selectedTime;
   TextEditingController _descriptionController = TextEditingController();
   TextEditingController _amountController = TextEditingController();
+  TextEditingController _locationController = TextEditingController();
   bool _showCustomKeypad = false;
   File? _image;
 
@@ -142,6 +148,63 @@ class _AddCostPageState extends State<AddCostPage> {
     }
   }
 
+  //get latitude and longitude
+  Future<void> _determinePosition() async {
+    bool serviceEnabled;
+    LocationPermission permission;
+
+    // check whether position is available
+    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Location services are disabled.')),
+      );
+      return;
+    }
+
+    permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Location permissions are denied')),
+        );
+        return;
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+            content: Text(
+                'Location permissions are permanently denied, we cannot request permissions.')),
+      );
+      return;
+    }
+
+    // get position
+    Position position = await Geolocator.getCurrentPosition();
+    _getPlaceName(position.latitude, position.longitude);
+  }
+
+  Future<void> _getPlaceName(double latitude, double longitude) async {
+    try {
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(latitude, longitude);
+      if (placemarks.isNotEmpty) {
+        Placemark place = placemarks.first;
+        String detailedAddress =
+            '${place.street}, ${place.subLocality}, ${place.locality}, ${place.postalCode}, ${place.country}';
+        _locationController.text = detailedAddress;
+      }
+    } catch (e) {
+      print("Failed to get placemark: $e");
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to get location details')),
+      );
+    }
+  }
+
   // Update the Confirm button to use the new method
   Widget _confirmButton() {
     return ElevatedButton(
@@ -176,9 +239,11 @@ class _AddCostPageState extends State<AddCostPage> {
     if (_image != null) {
       imgPath = _image!.path.toString().trim();
     }
+    String location = _locationController.text.trim();
 
-    RecordDetails recordDetails = RecordDetails(
-        id, entryType, description, amount, expenseType, date, time, imgPath);
+    String userSig = getUserSig();
+    RecordDetails recordDetails = RecordDetails(id, entryType, description,
+        amount, expenseType, date, time, imgPath, location, userSig);
 
     bool result = false;
     if (dataMap != null) {
@@ -214,6 +279,19 @@ class _AddCostPageState extends State<AddCostPage> {
       _descriptionController.text = _description.toString();
       _amountController.text = _amount.toString();
       _image = File(dataMap!['imgPath'].toString().trim());
+      _locationController.text = dataMap!['location'].toString().trim();
+
+      // sim time
+      bool is12 = dataMap!['time'].split(":")[1].toString().contains("PM");
+      int is12Int = is12 ? 12 : 0;
+      _selectedTime = TimeOfDay(
+          hour: int.parse(dataMap!['time'].split(":")[0].toString()) + is12Int,
+          minute: int.parse(dataMap!['time']
+              .split(":")[1]
+              .toString()
+              .replaceAll("AM", "")
+              .replaceAll("PM", "")));
+
       initDataCount += 1;
     }
   }
@@ -265,7 +343,8 @@ class _AddCostPageState extends State<AddCostPage> {
                   _buildExpenseTypeChip(Icons.restaurant, 'Eating'),
                   _buildExpenseTypeChip(Icons.shopping_cart, 'Shopping'),
                   _buildExpenseTypeChip(Icons.movie, 'Entertainment'),
-                  _buildExpenseTypeChip(Icons.book, 'Study'),
+                  _buildExpenseTypeChip(Icons.book, 'Learning'),
+                  _buildExpenseTypeChip(Icons.more_vert, 'Other')
                 ],
               ),
               Divider(),
@@ -285,7 +364,13 @@ class _AddCostPageState extends State<AddCostPage> {
                 ),
                 readOnly: true, // Make this field read-only
                 onTap: _toggleKeypad, // Toggle the custom keypad on tap
-                // (Validator and other properties remain the same)
+              ),
+              TextFormField(
+                controller: _locationController,
+                decoration: InputDecoration(
+                  labelText: 'Location',
+                  border: OutlineInputBorder(),
+                ),
               ),
               ListTile(
                 title: Text('Pick Date and Time'),
@@ -293,6 +378,7 @@ class _AddCostPageState extends State<AddCostPage> {
                     ? 'No date chosen'
                     : 'Date: ${_selectedDate!.toIso8601String().split('T')[0]} Time: ${_selectedTime?.format(context) ?? ''}'),
                 trailing: Icon(Icons.calendar_today),
+
                 onTap: _pickDate, // Trigger date picker
               ),
               Row(
@@ -302,6 +388,11 @@ class _AddCostPageState extends State<AddCostPage> {
                     icon: Icon(Icons.camera_alt),
                     color: Theme.of(context).primaryColor,
                     onPressed: _takePicture,
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.location_on),
+                    color: Theme.of(context).primaryColor,
+                    onPressed: _determinePosition,
                   ),
                 ],
               ),

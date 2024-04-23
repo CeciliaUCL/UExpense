@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:uexpense/Pages/GetUserInfo.dart';
 import 'package:uexpense/Pages/WelcomePage.dart';
 import 'package:uexpense/Pages/AddCostPage.dart';
 import 'package:uexpense/Pages/ChangePasswordPage.dart';
@@ -20,16 +21,15 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-
   int _selectedIndex = 0;
 
-  List<dynamic> _hourlyWeather = [];//store weather
-  List<String> messages = [];  // store chat
-  TextEditingController messageController = TextEditingController();
+  List<dynamic> _hourlyWeather = []; //store weather
+  List<String> messages = []; // store chat
+  TextEditingController messageController =
+      TextEditingController(); //store sent message
 
-
-  double expenseTotal = 0;
-  double incomeTotal = 0;
+  double expenseTotal = 0; //initial expenditure
+  double incomeTotal = 0; //initial income
 
   List<Map> recordDetailsLst = [];
   List<String> showRecordDetailsLst = [];
@@ -41,9 +41,13 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+//select income
   Future<void> selIncomeData(int index) async {
+    String userSig = getUserSig();
+
     String entryType = index == 0 ? "expense" : "income";
-    List<Map> result = await DBExTool().selRecordDetailsByEntryType(entryType);
+    List<Map> result = await DBExTool()
+        .selRecordDetailsByEntryTypeAndUserSig(entryType, userSig);
     double amount = 0;
     for (var item in result) {
       amount += item["amount"];
@@ -57,9 +61,13 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+//select records
   Future<void> selRecordDetails() async {
-    recordDetailsLst = await DBExTool().selRecordDetailsByAll();
-    recordDetailsLst.reversed; // 反转lst
+    String userSig = getUserSig();
+
+    recordDetailsLst =
+        await DBExTool().selRecordDetailsByAllAndUserSig(userSig);
+    recordDetailsLst.reversed; // reverse lst
     showRecordDetailsLst = [];
     showAllRecordDetailsLst = [];
     setState(() {
@@ -79,6 +87,7 @@ class _DashboardState extends State<Dashboard> {
     });
   }
 
+  //initialize data
   void initData() {
     selIncomeData(0);
     selIncomeData(1);
@@ -116,7 +125,7 @@ class _DashboardState extends State<Dashboard> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Add code to open the camera here
+          // jump add cost page
           Navigator.of(context)
               .push(MaterialPageRoute(builder: (context) => AddCostPage(null)));
         },
@@ -166,6 +175,7 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
+  //check delete records
   Future<void> itemDel(Map map) async {
     bool result = await DBExTool().deleteRecordDetailsById(map["id"]);
     String info = result ? "Delete Successfully!" : "Delete Failed!";
@@ -183,6 +193,7 @@ class _DashboardState extends State<Dashboard> {
         .push(MaterialPageRoute(builder: (context) => AddCostPage(map)));
   }
 
+// long click to delete record
   void listItemLongClick(int itemIndex, listIndex) {
     Map map = recordDetailsLst[itemIndex];
     showDialog(
@@ -220,8 +231,10 @@ class _DashboardState extends State<Dashboard> {
         return Icon(Icons.shopping_cart, size: 50, color: Colors.green);
       case 'entertainment':
         return Icon(Icons.movie, size: 50, color: Colors.purple);
-      case 'study':
-        return Icon(Icons.school, size: 50, color: Colors.orange);
+      case 'learning':
+        return Icon(Icons.book, size: 50, color: Colors.orange);
+      case 'other':
+        return Icon(Icons.more_vert, size: 50, color: Colors.black);
       default:
         return Icon(Icons.error, size: 50, color: Colors.grey);
     }
@@ -236,21 +249,21 @@ class _DashboardState extends State<Dashboard> {
   Widget _listItem(List<String> dataLst, int listIndex) {
     return ListView(
         shrinkWrap: true,
-        padding: EdgeInsets.all(20.0), // 外边距调整
+        padding: EdgeInsets.all(20.0), // outside margin
         children: List.generate(
             dataLst.length,
             (index) => InkWell(
                 onLongPress: () => listItemLongClick(index, listIndex),
                 onTap: () => listItemClick(index, listIndex),
                 child: Card(
-                  elevation: 5.0, // 卡片的阴影效果
+                  elevation: 5.0, // shadow
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10.0), // 卡片圆角
+                    borderRadius: BorderRadius.circular(10.0), //
                   ),
                   child: Padding(
-                    padding: EdgeInsets.all(15.0), // 卡片内容的内边距
+                    padding: EdgeInsets.all(15.0), //
                     child: Align(
-                      alignment: Alignment.topLeft, // 设置左对齐
+                      alignment: Alignment.topLeft, // left
                       child: Row(
                         children: <Widget>[
                           getExpenseTypeIcon(
@@ -271,6 +284,7 @@ class _DashboardState extends State<Dashboard> {
                 ))));
   }
 
+//————————————————————————————————Home————————————————————————————————————
   Widget _homePage() {
     return Column(
       children: [
@@ -278,9 +292,7 @@ class _DashboardState extends State<Dashboard> {
         _dateFilterSection(),
         _recentTransactionSection(),
         Container(
-            width: 800,
-            height: 500,
-            child: _listItem(showRecordDetailsLst, 0)),
+            width: 800, height: 500, child: _listItem(showRecordDetailsLst, 0)),
       ],
     );
   }
@@ -291,25 +303,24 @@ class _DashboardState extends State<Dashboard> {
   }
 
   // Account balance section
-Widget _accountBalanceSection() {
-  return Container(
-    padding: EdgeInsets.all(16),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        Expanded(
-          child: _balanceCard(
-              'Income', incomeTotal, Icons.arrow_downward, Colors.green),
-        ),
-        Expanded(
-          child: _balanceCard(
-              'Expenditure', expenseTotal, Icons.arrow_upward, Colors.red),
-        ),
-      ],
-    ),
-  );
-}
-
+  Widget _accountBalanceSection() {
+    return Container(
+      padding: EdgeInsets.all(16),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        children: [
+          Expanded(
+            child: _balanceCard(
+                'Income', incomeTotal, Icons.arrow_downward, Colors.green),
+          ),
+          Expanded(
+            child: _balanceCard(
+                'Expenditure', expenseTotal, Icons.arrow_upward, Colors.red),
+          ),
+        ],
+      ),
+    );
+  }
 
   // Date filter section
   Widget _dateFilterSection() {
@@ -350,10 +361,12 @@ Widget _accountBalanceSection() {
       ),
     );
   }
+
 //——————————————————————————————————————Profile——————————————————————————————————————————————————————————
   Widget _profilePage() {
     User? user = FirebaseAuth.instance.currentUser;
-    String displayName = user?.email ?? "No email available"; // Default text if user email is not available
+    String displayName = user?.email ??
+        "No email available"; // Default text if user email is not available
 
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -367,7 +380,8 @@ Widget _accountBalanceSection() {
           title: Text('Change Password'),
           onTap: () {
             // Navigate to change password page
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ChangePasswordPage()));
+            Navigator.of(context).push(
+                MaterialPageRoute(builder: (context) => ChangePasswordPage()));
           },
         ),
         ListTile(
@@ -385,11 +399,9 @@ Widget _accountBalanceSection() {
       ],
     );
   }
-  
-
 
 //————————————————————————————————————————————————Assistant————————————————————————————————————————————————————————
- //send messaege and return reply
+  //send messaege and return reply
   Future<void> sendMessage() async {
     final String userInput = messageController.text;
     if (userInput.isNotEmpty) {
@@ -407,9 +419,10 @@ Widget _accountBalanceSection() {
   //fecth APIKey
   Future<String> fetchApiKey() async {
     try {
-      final response = await http.get(Uri.parse('https://weicheng.app/somesecrettttt.txt'));
+      final response =
+          await http.get(Uri.parse('https://weicheng.app/somesecrettttt.txt'));
       if (response.statusCode == 200) {
-        return response.body.trim();  // return API from sever
+        return response.body.trim(); // return API from sever
       } else {
         throw Exception('Failed to load API key');
       }
@@ -420,60 +433,69 @@ Widget _accountBalanceSection() {
 
   //get OpenAI API
   Future<String> chatWithOpenAI(String message) async {
-  try {
-    final apiKey = await fetchApiKey();  // get API
-    final url = Uri.parse('https://api.openai.com/v1/chat/completions');
-    final response = await http.post(
-      url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer $apiKey'
-      },
-      body: jsonEncode({
-        'messages': [{'role': 'user', 'content': message}],
-        'model': 'gpt-3.5-turbo',
-      }),
-    );
+    try {
+      final apiKey = await fetchApiKey(); // get API
+      final url = Uri.parse('https://api.openai.com/v1/chat/completions');
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $apiKey'
+        },
+        body: jsonEncode({
+          'messages': [
+            {'role': 'user', 'content': message}
+          ],
+          'model': 'gpt-3.5-turbo',
+        }),
+      );
 
-    if (response.statusCode == 200) {
-      var jsonResponse = jsonDecode(response.body);
-      return jsonResponse['choices'][0]['message']['content'].trim();
-    } else {
-      throw Exception('Failed to get response: ${response.body}');
+      if (response.statusCode == 200) {
+        var jsonResponse = jsonDecode(response.body);
+        return jsonResponse['choices'][0]['message']['content'].trim();
+      } else {
+        throw Exception('Failed to get response: ${response.body}');
+      }
+    } catch (e) {
+      return 'Error contacting OpenAI: $e';
     }
-  } catch (e) {
-    return 'Error contacting OpenAI: $e';
   }
-}
 
   //press the button to show weather and location
   String _weatherInfo = 'Press the button to get weather';
+
   Future<void> getWeather() async {
     try {
       Position position = await determinePosition();
-      var currentWeatherData = await fetchWeather(position.latitude, position.longitude);
-      var hourlyWeatherData = await fetchHourlyWeather(position.latitude, position.longitude);
-      List<Placemark> placemarks = await placemarkFromCoordinates(position.latitude, position.longitude);
-      String place = placemarks.isNotEmpty ? '${placemarks.first.locality}, ${placemarks.first.country}' : 'Unknown location';
+      var currentWeatherData =
+          await fetchWeather(position.latitude, position.longitude);
+      var hourlyWeatherData =
+          await fetchHourlyWeather(position.latitude, position.longitude);
+      List<Placemark> placemarks =
+          await placemarkFromCoordinates(position.latitude, position.longitude);
+      String place = placemarks.isNotEmpty
+          ? '${placemarks.first.locality}, ${placemarks.first.country}'
+          : 'Unknown location';
       setState(() {
-        _weatherInfo = 'Current Temperature: ${_convertToCelsius(currentWeatherData['main']['temp']).toStringAsFixed(1)} °C\n'
-               'Weather: ${currentWeatherData['weather'][0]['description']}\n'
-               'Location: $place';
-        _hourlyWeather = hourlyWeatherData['list'].take(8).toList();//for 24h
+        _weatherInfo =
+            'Current Temperature: ${_convertToCelsius(currentWeatherData['main']['temp']).toStringAsFixed(1)} °C\n'
+            'Weather: ${currentWeatherData['weather'][0]['description']}\n'
+            'Location: $place';
+        _hourlyWeather = hourlyWeatherData['list'].take(8).toList(); //for 24h
       });
     } catch (e) {
       setState(() {
-        _weatherInfo = 'Failed to get weather: $e';//handle failure
+        _weatherInfo = 'Failed to get weather: $e'; //handle failure
         _hourlyWeather = [];
       });
     }
   }
-  
+
   //convert to celsius
   double _convertToCelsius(double tempInKelvin) {
     return tempInKelvin - 273.15;
   }
-  
+
   //record location
   Future<Position> determinePosition() async {
     bool serviceEnabled;
@@ -493,16 +515,19 @@ Widget _accountBalanceSection() {
     }
 
     if (permission == LocationPermission.deniedForever) {
-      return Future.error('Location permissions are permanently denied, we cannot request permissions.');
+      return Future.error(
+          'Location permissions are permanently denied, we cannot request permissions.');
     }
 
     return await Geolocator.getCurrentPosition();
   }
 
   //use openweathermap API to get current weather
-  Future<Map<String, dynamic>> fetchWeather(double latitude, double longitude) async {
-    final apiKey = '69516efa70e4fabd1f6034411c9d4990';  // APIkey
-    final url = 'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey';
+  Future<Map<String, dynamic>> fetchWeather(
+      double latitude, double longitude) async {
+    final apiKey = '69516efa70e4fabd1f6034411c9d4990'; // APIkey
+    final url =
+        'https://api.openweathermap.org/data/2.5/weather?lat=$latitude&lon=$longitude&appid=$apiKey';
 
     final response = await http.get(Uri.parse(url));
 
@@ -512,11 +537,14 @@ Widget _accountBalanceSection() {
       throw Exception('Failed to load weather data');
     }
   }
+
   //use openweathermap API to get future weather
-  Future<Map<String, dynamic>> fetchHourlyWeather(double latitude, double longitude) async {
-    final apiKey = '69516efa70e4fabd1f6034411c9d4990';  // API key
-    final url = 'https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=$apiKey';
-    
+  Future<Map<String, dynamic>> fetchHourlyWeather(
+      double latitude, double longitude) async {
+    final apiKey = '69516efa70e4fabd1f6034411c9d4990'; // API key
+    final url =
+        'https://api.openweathermap.org/data/2.5/forecast?lat=$latitude&lon=$longitude&appid=$apiKey';
+
     final response = await http.get(Uri.parse(url));
     if (response.statusCode == 200) {
       return json.decode(response.body);
@@ -527,129 +555,135 @@ Widget _accountBalanceSection() {
 
   //list future weather
   Widget _hourlyWeatherListView() {
-  return Container(
-    height: 180.0, 
-    child: ListView.builder(
-      shrinkWrap: true,
-      physics: ClampingScrollPhysics(), // To provide a more compact scrolling experience
-      itemCount: _hourlyWeather.length,
-      itemBuilder: (context, index) {
-        var hourlyData = _hourlyWeather[index];
-        var time = DateTime.fromMillisecondsSinceEpoch(hourlyData['dt'] * 1000);
-        return ListTile(
-          contentPadding: EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0), //ListTile inside margin
-          leading: Icon(Icons.wb_sunny, size: 20), 
-          title: Text(
-            '${time.hour}:00',
-            style: TextStyle(fontSize: 14), 
-          ),
-          subtitle: Text(
-            hourlyData['weather'][0]['description'],
-            style: TextStyle(fontSize: 12), 
-          ),
-          trailing: Text(
-            '${_convertToCelsius(hourlyData['main']['temp']).toStringAsFixed(1)} °C',
-            style: TextStyle(fontSize: 14), 
-          ),
-        );
-      },
-    ),
-  );
-}
+    return Container(
+      height: 180.0,
+      child: ListView.builder(
+        shrinkWrap: true,
+        physics: ClampingScrollPhysics(),
+        // To provide a more compact scrolling experience
+        itemCount: _hourlyWeather.length,
+        itemBuilder: (context, index) {
+          var hourlyData = _hourlyWeather[index];
+          var time =
+              DateTime.fromMillisecondsSinceEpoch(hourlyData['dt'] * 1000);
+          return ListTile(
+            contentPadding:
+                EdgeInsets.symmetric(horizontal: 20.0, vertical: 4.0),
+            //ListTile inside margin
+            leading: Icon(Icons.wb_sunny, size: 20),
+            title: Text(
+              '${time.hour}:00',
+              style: TextStyle(fontSize: 14),
+            ),
+            subtitle: Text(
+              hourlyData['weather'][0]['description'],
+              style: TextStyle(fontSize: 12),
+            ),
+            trailing: Text(
+              '${_convertToCelsius(hourlyData['main']['temp']).toStringAsFixed(1)} °C',
+              style: TextStyle(fontSize: 14),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
 //page
   Widget _assistantPage() {
-  return SingleChildScrollView(
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.all(12.0),
-          child: Card(
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(15.0),
-            ),
-            elevation: 4.0,
-            child: Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                children: [
-                  Text(
-                    'Weather Information',
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
-                  ),
-                  SizedBox(height: 10),
-                  Text(
-                    _weatherInfo,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        ElevatedButton(
-          onPressed: getWeather,
-          child: Text('Get Weather'),
-          style: ElevatedButton.styleFrom(
-            foregroundColor: Colors.white, 
-            backgroundColor: Color.fromARGB(255, 51, 126, 111),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-            padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0),
-          child: _hourlyWeatherListView(),
-        ),
-        _chatCard(),
-      ],
-    ),
-  );
-}
-
-Widget _chatCard() {
-  return Card(
-    margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
-    elevation: 4.0,
-    child: Padding(
-      padding: const EdgeInsets.all(16.0),
+    return SingleChildScrollView(
       child: Column(
-        children: [
-          TextField(
-            controller: messageController,
-            decoration: InputDecoration(
-              labelText: "Ask a question",
-              suffixIcon: IconButton(
-                icon: Icon(Icons.send),
-                onPressed: sendMessage,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Padding(
+            padding: const EdgeInsets.all(12.0),
+            child: Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(15.0),
+              ),
+              elevation: 4.0,
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Text(
+                      'Weather Information',
+                      style:
+                          TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      _weatherInfo,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontSize: 16),
+                    ),
+                  ],
+                ),
               ),
             ),
-            onSubmitted: (value) => sendMessage(),
           ),
-          SizedBox(height: 10),
-          Text(
-            'Chat with OpenAI:',
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
-          ),
-          SizedBox(height: 10),
-          Container(
-            height: 300,
-            child: ListView.builder(
-              itemCount: messages.length,
-              reverse: true,
-              itemBuilder: (context, index) {
-                return ListTile(title: Text(messages[index]));
-              },
+          ElevatedButton(
+            onPressed: getWeather,
+            child: Text('Get Weather'),
+            style: ElevatedButton.styleFrom(
+              foregroundColor: Colors.white,
+              backgroundColor: Color.fromARGB(255, 51, 126, 111),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30),
+              ),
+              padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12.0),
+            child: _hourlyWeatherListView(),
+          ),
+          _chatCard(),
         ],
       ),
-    ),
-  );
-}
+    );
+  }
+
+  //chat box
+  Widget _chatCard() {
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15.0)),
+      elevation: 4.0,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: messageController,
+              decoration: InputDecoration(
+                labelText: "Ask a question",
+                suffixIcon: IconButton(
+                  icon: Icon(Icons.send),
+                  onPressed: sendMessage,
+                ),
+              ),
+              onSubmitted: (value) => sendMessage(),
+            ),
+            SizedBox(height: 10),
+            Text(
+              'Chat with OpenAI:',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            SizedBox(height: 10),
+            Container(
+              height: 300,
+              child: ListView.builder(
+                itemCount: messages.length,
+                reverse: true,
+                itemBuilder: (context, index) {
+                  return ListTile(title: Text(messages[index]));
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
