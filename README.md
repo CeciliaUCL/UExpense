@@ -14,14 +14,16 @@ Designed For:
 4. **Built-In Smart Assistant**:  UExpense is more than just a financial tracker. It includes a built-in smart assistant ready to answer your queries and offer personalized money management advice. 
 
 ## 🌐Landing Page & 🎥Video
-[LandingPage](https://uexpense.grwebsite.co.uk/)
-[Video](https://www.youtube.com/watch?v=M0qWB-q7LSg&t=21s)
+LandingPage:https://uexpense.grwebsite.co.uk/
+Video:https://www.youtube.com/watch?v=M0qWB-q7LSg&t=21s
 
-## Initial Design
-![image](https://github.com/CeciliaUCL/UExpense/blob/main/1.png)
-![image](https://github.com/CeciliaUCL/UExpense/blob/main/2.png)
-![image](https://github.com/CeciliaUCL/UExpense/blob/main/3.png)
-![image](https://github.com/CeciliaUCL/UExpense/blob/main/4.png)
+## ❤️Design
+Log In/Sign Up
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/5.png)
+Add/Modify/Delete Transaction
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/6.png)
+Smart Assistant/Location Record
+![image](https://github.com/CeciliaUCL/UExpense/blob/main/7.png)
 
 
 ## Include A Section That Tells Developers How To Install The App
