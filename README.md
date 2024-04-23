@@ -8,7 +8,7 @@ Designed For:
 - People who Wonder why their money mysteriously runs out.
 
 ## 🔧Main Function
-1. **Effortless Expense Trackingg**: Just snap a picture of your receipts, and UExpense will automatically categorize your expenses. Our state-of-the-art OCR (Optical Character Recognition) technology extracts and organizes information from your receipts, making expense tracking effortless.
+1. **Comprehensive Financial Tracking and Management**: Users can register and log into the app to add, modify, and delete various income and expenditure records, allowing for detailed tracking and management of personal finances.
 2. **Photographic Documentation of Receipts**: PThe app enables users to use their smartphone cameras to take photos of receipts and other financial documents. This feature helps users to keep a visual record for verification and reference, which can be helpful for accurate financial tracking and later review.
 3. **Location Recording Feature**: When recording transactions, the app can record and display the specific location of the expenditure, making it easier for users to review spending behavior at particular locations.
 4. **Built-In Smart Assistant**:  UExpense is more than just a financial tracker. It includes a built-in smart assistant ready to answer your queries and offer personalized money management advice. 
